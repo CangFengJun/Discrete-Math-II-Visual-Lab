@@ -31,7 +31,8 @@
 ## 快速开始
 
 ### 方式一：本地直接打开（零安装）
-1. 克隆或下载仓库后，直接用现代浏览器（Chrome / Edge / Firefox / Safari）双击打开根目录下的 `index.html`。
+1. 从 GitHub **Releases** 下载最新的离线便携包 `discrete-math-ii-visual-lab-*.zip` 解压（或直接克隆本仓库）。
+2. 用现代浏览器（Chrome / Edge / Firefox / Safari）直接双击打开根目录下的 `index.html`。
 
 ### 方式二：本地开发与运行测试
 需要 Node.js（推荐 v18+）运行纯代数内核单元测试与语法校验：

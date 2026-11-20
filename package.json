@@ -1,0 +1,11 @@
+{
+  "name": "discrete-math-ii-visual-lab",
+  "version": "1.0.0",
+  "description": "Interactive geometric visualizations for Discrete Mathematics II (Abstract Algebra: Groups, Rings, Fields, Polynomials & Finite Fields).",
+  "private": false,
+  "license": "MIT",
+  "scripts": {
+    "test": "node tests/math-engine.test.mjs",
+    "check": "node -e \"const fs=require('fs'),path=require('path'),cp=require('child_process');function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory())walk(p);else if(e.name.endsWith('.js'))cp.execFileSync(process.execPath,['--check',p],{stdio:'inherit'});}}walk('js');console.log('ALL_JS_SYNTAX_OK');\""
+  }
+}

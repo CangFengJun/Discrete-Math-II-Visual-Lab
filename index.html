@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《离散数学II》第六章 群·环·域 数形结合可视化工作台</title>
+  <link rel="stylesheet" href="./vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="./css/theme.css">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">G·R·F</div>
+        <div class="brand-text">
+          <span class="brand-title">《离散数学II》数形结合交互工作台</span>
+          <span class="brand-sub" id="meta-subtitle">6.1–6.8 全章 · 222 张卡片 · 离线便携版</span>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <span class="search-icon">🔍</span>
+        <input id="global-search" class="search-input" type="text" placeholder="全局搜索 222 张卡片 / 定理 / 手写补充 / 易错结论（如 陪集、Eisenstein、GF）…">
+        <button id="search-clear" class="search-clear" title="清空搜索">✕</button>
+      </div>
+
+      <div class="topbar-actions">
+        <button id="btn-terms" class="btn" title="查看本课程 PPT 绝对准则术语与记号对照表">📖 绝对准则术语表</button>
+        <button id="btn-theme" class="btn" title="切换明亮学术白板 / 暗色 3Blue1Brown 天文馆风">🌙 3B1B 暗色</button>
+        <button id="btn-drawer-toggle" class="btn btn-primary" title="展开或收起右侧知识卡片抽屉">🗂 知识卡片</button>
+      </div>
+    </header>
+
+    <!-- Main 3-Column Workspace -->
+    <div class="workspace-body">
+      <nav id="nav-rail" class="nav-rail" aria-label="章节实验室导航"></nav>
+
+      <main id="stage-main" class="stage-main"></main>
+
+      <aside id="knowledge-drawer" class="knowledge-drawer" aria-label="知识卡片双链抽屉">
+        <div class="drawer-header">
+          <div class="drawer-title-row">
+            <span id="drawer-title" class="drawer-title">知识卡片双链</span>
+            <div style="display:flex;gap:4px;">
+              <button id="btn-drawer-widen" class="btn btn-sm" title="切换抽屉宽度">⬌</button>
+              <button id="btn-drawer-close" class="btn btn-sm" title="收起抽屉">✕</button>
+            </div>
+          </div>
+          <div id="drawer-filters" class="filter-pills"></div>
+        </div>
+        <div id="drawer-cards" class="drawer-cards"></div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Floating SVG Tooltip -->
+  <div id="svg-tooltip" class="svg-tooltip"></div>
+
+  <!-- Terminology Alignment Modal -->
+  <div id="terms-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="terms-modal-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <strong id="terms-modal-title" style="font-size:15px;">本课程 PPT “绝对准则”术语与记号对照表（同步自 00-目录.md）</strong>
+        <button id="btn-terms-close" class="btn btn-sm">关闭 ✕</button>
+      </div>
+      <div id="terms-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Scripts (classic defer load for zero-CORS file:// compatibility) -->
+  <script defer src="./vendor/katex/katex.min.js"></script>
+  <script defer src="./data/knowledge-data.js"></script>
+  <script defer src="./js/core/math-engine.js"></script>
+  <script defer src="./js/core/katex-helper.js"></script>
+  <script defer src="./js/core/svg-helper.js"></script>
+  <script defer src="./js/core/ring-venn.js"></script>
+  <script defer src="./js/core/hom-triangle.js"></script>
+  <script defer src="./js/labs/lab-overview.js"></script>
+  <script defer src="./js/labs/lab-61-algebra.js"></script>
+  <script defer src="./js/labs/lab-62-groups.js"></script>
+  <script defer src="./js/labs/lab-63-subgroups.js"></script>
+  <script defer src="./js/labs/lab-64-homomorphism.js"></script>
+  <script defer src="./js/labs/lab-65-rings.js"></script>
+  <script defer src="./js/labs/lab-66-characteristic.js"></script>
+  <script defer src="./js/labs/lab-67-polynomials.js"></script>
+  <script defer src="./js/labs/lab-68-finite-fields.js"></script>
+  <script defer src="./js/app.js"></script>
+</body>
+</html>

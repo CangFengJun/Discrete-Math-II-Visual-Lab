@@ -1,0 +1,165 @@
+/* Dual Theme Variables:
+ * Default (:root): Bright Academic Whiteboard (continues PDF 7-color card palette)
+ * [data-theme="dark"]: 3Blue1Brown Planetarium (deep midnight blue + luminous geometric paths)
+ */
+
+:root {
+  --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+
+  /* Surfaces */
+  --bg-app: #F1F5F9;
+  --bg-panel: #FFFFFF;
+  --bg-subtle: #F8FAFC;
+  --bg-elevated: #FFFFFF;
+  --bg-stage: #FFFFFF;
+  --stage-grid-dot: rgba(148, 163, 184, 0.25);
+
+  /* Typography */
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+  --border-strong: #CBD5E1;
+
+  /* Semantic Accents (Geometry & Interactive) */
+  --accent-blue: #2563EB;
+  --accent-teal: #0D9488;
+  --accent-purple: #7C3AED;
+  --accent-amber: #D97706;
+  --accent-rose: #E11D48;
+  --accent-green: #16A34A;
+  --accent-cyan: #0891B2;
+  --accent-slate: #475569;
+
+  --accent-blue-soft: rgba(37, 99, 235, 0.11);
+  --accent-teal-soft: rgba(13, 148, 136, 0.12);
+  --accent-purple-soft: rgba(124, 58, 237, 0.11);
+  --accent-amber-soft: rgba(217, 119, 6, 0.13);
+  --accent-rose-soft: rgba(225, 29, 72, 0.12);
+  --accent-green-soft: rgba(22, 163, 74, 0.12);
+
+  /* Card 7-color palette (matching PDF) */
+  --card-def-bg: #F8FAFF;
+  --card-def-head: #EFF6FF;
+  --card-def-border: #2563EB;
+
+  --card-thm-bg: #F5FEFC;
+  --card-thm-head: #E6FAF5;
+  --card-thm-border: #0D9488;
+
+  --card-prop-bg: #FAF8FF;
+  --card-prop-head: #F3EEFF;
+  --card-prop-border: #7C3AED;
+
+  --card-table-bg: #F8FAFC;
+  --card-table-head: #F1F5F9;
+  --card-table-border: #475569;
+
+  --card-note-bg: #FFFDF5;
+  --card-note-head: #FEF3C7;
+  --card-note-border: #D97706;
+
+  --card-pitfall-bg: #FFF8F9;
+  --card-pitfall-head: #FFE4E6;
+  --card-pitfall-border: #E11D48;
+
+  --card-hw-bg: #F6FEF9;
+  --card-hw-head: #DCFCE7;
+  --card-hw-border: #16A34A;
+
+  /* Distinct Coset / Orbit Palette */
+  --pal-0: #2563EB;
+  --pal-1: #0D9488;
+  --pal-2: #D97706;
+  --pal-3: #7C3AED;
+  --pal-4: #E11D48;
+  --pal-5: #0891B2;
+  --pal-6: #16A34A;
+  --pal-7: #EA580C;
+
+  --svg-node-fill: #FFFFFF;
+  --svg-node-stroke: #334155;
+  --svg-line-muted: #CBD5E1;
+  --svg-glow: none;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 14px 36px rgba(15, 23, 42, 0.14);
+}
+
+[data-theme="dark"] {
+  --bg-app: #070B16;
+  --bg-panel: #0E1528;
+  --bg-subtle: #141E36;
+  --bg-elevated: #17233E;
+  --bg-stage: #0B1020;
+  --stage-grid-dot: rgba(148, 163, 184, 0.14);
+
+  --text-primary: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --border-color: #1E293B;
+  --border-strong: #334155;
+
+  /* 3Blue1Brown-inspired luminous colors */
+  --accent-blue: #38BDF8;
+  --accent-teal: #2DD4BF;
+  --accent-purple: #A78BFA;
+  --accent-amber: #FBBF24;
+  --accent-rose: #FB7185;
+  --accent-green: #4ADE80;
+  --accent-cyan: #22D3EE;
+  --accent-slate: #94A3B8;
+
+  --accent-blue-soft: rgba(56, 189, 248, 0.16);
+  --accent-teal-soft: rgba(45, 212, 191, 0.16);
+  --accent-purple-soft: rgba(167, 139, 250, 0.16);
+  --accent-amber-soft: rgba(251, 191, 36, 0.18);
+  --accent-rose-soft: rgba(251, 113, 133, 0.18);
+  --accent-green-soft: rgba(74, 222, 128, 0.16);
+
+  --card-def-bg: #0F1A33;
+  --card-def-head: #132347;
+  --card-def-border: #38BDF8;
+
+  --card-thm-bg: #0D1F26;
+  --card-thm-head: #112D35;
+  --card-thm-border: #2DD4BF;
+
+  --card-prop-bg: #171530;
+  --card-prop-head: #201C45;
+  --card-prop-border: #A78BFA;
+
+  --card-table-bg: #121A2B;
+  --card-table-head: #192338;
+  --card-table-border: #64748B;
+
+  --card-note-bg: #1F1A0E;
+  --card-note-head: #2E2510;
+  --card-note-border: #FBBF24;
+
+  --card-pitfall-bg: #24111A;
+  --card-pitfall-head: #361625;
+  --card-pitfall-border: #FB7185;
+
+  --card-hw-bg: #0E2017;
+  --card-hw-head: #132F20;
+  --card-hw-border: #4ADE80;
+
+  --pal-0: #38BDF8;
+  --pal-1: #2DD4BF;
+  --pal-2: #FBBF24;
+  --pal-3: #A78BFA;
+  --pal-4: #FB7185;
+  --pal-5: #22D3EE;
+  --pal-6: #4ADE80;
+  --pal-7: #FB923C;
+
+  --svg-node-fill: #131C33;
+  --svg-node-stroke: #94A3B8;
+  --svg-line-muted: #29354D;
+  --svg-glow: drop-shadow(0 0 6px rgba(56, 189, 248, 0.35));
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.65);
+}

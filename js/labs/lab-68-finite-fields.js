@@ -59,6 +59,10 @@
         tab = 'subfields';
       } else if (p === 'gf-triangle') {
         tab = 'triangle';
+      } else if (p === 'gf4-morph') {
+        tab = 'morph';
+        gfKey = '2_2';
+        morphT = 0;
       } else if (p === 'gf8-mul-ring') {
         tab = 'morph';
         gfKey = '2_3';

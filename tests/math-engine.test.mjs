@@ -80,6 +80,17 @@ function run() {
     for (let i = 0; i < prod.length; i++) assert.ok(M.fracEq(prod[i], target[i]));
   }
 
+  // Phase 2 checks: mod-p reduction, characteristic p roots of unity, R_5/R_7 Phi_n factorization
+  assert.equal(M.polyIsIrreducibleFp([1, 0, 0, 1, 0, 1], 2), true, '3x^5+7x^2+5 mod 2 = x^5+x^2+1 irreducible over R_2');
+  const phi3 = M.cyclotomicPoly(3);
+  assert.equal(M.polyFactorFp(M.polyNormFp(phi3, 5), 5).factors.length, 1, 'Phi_3 irreducible over R_5');
+  const fac3Mod7 = M.polyFactorFp(M.polyNormFp(phi3, 7), 7);
+  assert.equal(fac3Mod7.factors.length, 2, 'Phi_3 splits into 2 linear factors over R_7');
+  assert.equal(M.polyFactorFp(M.polyNormFp(M.cyclotomicPoly(13), 7), 7).factors.length, 1, 'Phi_13 irreducible over R_7');
+  const facX4Mod2 = M.polyFactorFp(M.polyNormFp([1, 0, 0, 0, -1], 2), 2);
+  assert.equal(facX4Mod2.factors.length, 1);
+  assert.equal(facX4Mod2.factors[0].mult, 4, 'x^4-1 = (x+1)^4 in R_2');
+
   // 4. Finite Fields GF(4), GF(8), GF(9), GF(16), GF(25), GF(64)
   for (const [p, n] of [[2, 2], [2, 3], [3, 2], [2, 4], [5, 2], [2, 6]]) {
     const gf = M.buildGF(p, n);

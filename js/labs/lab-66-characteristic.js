@@ -27,6 +27,12 @@
         pascalChar = 5;
         pascalExp = 5;
         modApplied = true;
+      } else if (p === 'numberline-char0') {
+        tab = 'wrap';
+        charMode = 0;
+      } else if (p === 'numberline-composite') {
+        tab = 'wrap';
+        charMode = 6;
       } else {
         tab = 'wrap';
         charMode = 5;
@@ -245,6 +251,26 @@
       }));
       panel.appendChild(body);
       container.appendChild(panel);
+
+      if (charMode > 0 && M.isPrime(charMode)) {
+        const sqMap = new Map();
+        for (let x = 0; x < charMode; x++) {
+          const sq = (x * x) % charMode;
+          if (!sqMap.has(sq)) sqMap.set(sq, []);
+          sqMap.get(sq).push(x);
+        }
+        const negOne = charMode - 1;
+        const sqrtNegOne = sqMap.get(negOne) || [];
+        const negTwo = M.mod(-2, charMode);
+        const sqrtNegTwo = sqMap.get(negTwo) || [];
+        const sqList = Array.from({ length: charMode }, (_, c) =>
+          sqMap.has(c) ? `√${c}={${sqMap.get(c).join(',')}}` : `${c}:无平方根`
+        ).join(' · ');
+        container.appendChild(htmlEl('div', { className: 'formula-banner info' }, [
+          htmlEl('strong', {}, `素域 I/${charMode}I（p.232 例题）：负元 -a = ${charMode}-a 与平方根分布`),
+          htmlEl('span', {}, `在 R_${charMode} 中 -1 = ${negOne}（${sqrtNegOne.length ? `√(-1) = ${sqrtNegOne.join(' 或 ')}` : '无 √(-1)'}），-2 = ${negTwo}（${sqrtNegTwo.length ? `√(-2) = ${sqrtNegTwo.join(' 或 ')}` : '无平方根 √(-2)'}）。全部元素：${sqList}`),
+        ]));
+      }
     }
 
     // -------------------------------------------------------------------------

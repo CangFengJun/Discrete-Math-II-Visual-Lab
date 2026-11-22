@@ -31,6 +31,16 @@
       mul: (a, b) => (a + b) % 4,
     });
 
+    const z6 = M.createZnAddGroup(6);
+    const trivialOne = M.buildGroupFromTable({
+      id: '{e}',
+      name: '({e}, ·)',
+      opSymbol: '·',
+      labels: ['e'],
+      identityIdx: 0,
+      mul: () => 0,
+    });
+
     return {
       z12_z4: {
         name: '模 4 同态：σ: (Z₁₂, +) → (Z₄, +), x ↦ x mod 4',
@@ -39,6 +49,14 @@
         map: Array.from({ length: 12 }, (_, x) => x % 4),
         isIso: false,
         desc: '同态核 N = {0, 4, 8}（3元正规子群），Z₁₂ 被切成 4 条各含 3 个元素的纤维陪集。',
+      },
+      z12_i4: {
+        name: '幂指数同态 (p.117)：σ: (Z₁₂, +) → ({1, i, -1, -i}, ×), n ↦ iⁿ',
+        G: z12,
+        Gp: i4,
+        map: Array.from({ length: 12 }, (_, x) => x % 4),
+        isIso: false,
+        desc: '例题 (ℤ,+)→(ℂ*,·) 的有限模型：像群为 4 次单位根群 U₄={1,i,-1,-i}，同态核 N = 4Z₁₂ = {0,4,8}。',
       },
       s3_sgn: {
         name: '奇偶符号同态：σ: S₃ → ({+1, -1}, ×)',
@@ -58,25 +76,83 @@
         isIso: false,
         desc: '同态核 N = {1, r²}（旋转180°构成的正规子群），4 条纤维塌缩为 4 元 Klein 群 V₄。',
       },
+      z6_trivial: {
+        name: '常值平凡同态 (p.116)：σ: (Z₆, +) → ({e}, ·), x ↦ e',
+        G: z6,
+        Gp: trivialOne,
+        map: [0, 0, 0, 0, 0, 0],
+        isIso: false,
+        desc: '任意两群之间恒存在常值平凡同态：像群仅为单位子群 {e}，同态核吞并整个原群 N = G。',
+      },
       z4_i4: {
         name: '同构对照（1-1）：σ: (Z₄, +) ≅ ({1, i, -1, -i}, ×), k ↦ i^k',
         G: z4,
         Gp: i4,
         map: [0, 1, 2, 3],
         isIso: true,
-        desc: '同态核仅含单位元 N = {0}：每条纤维只有 1 个元素，加法群 Z₄ 与 4 次单位根乘法群结构完全同构！',
+        desc: '同态核仅含单位元 N = {0}：每条纤维只有 1 个元素，加法群 Z₄ 与 4 次单位根乘法群结构完全同构且周期严格保持！',
+      },
+    };
+  }
+
+  function buildComposePresets() {
+    const z12 = M.createZnAddGroup(12);
+    const z4 = M.createZnAddGroup(4);
+    const z2 = M.createZnAddGroup(2);
+    const d4 = M.createD4Group();
+    const v4 = M.createV4Group();
+    const i4 = M.buildGroupFromTable({
+      id: 'U4',
+      name: '({1, i, -1, -i}, ×)',
+      opSymbol: '·',
+      labels: ['1', 'i', '-1', '-i'],
+      identityIdx: 0,
+      mul: (a, b) => (a + b) % 4,
+    });
+    return {
+      z12_z4_z2: {
+        name: '满同态复合：(Z₁₂, +) —[x mod 4]→ (Z₄, +) —[y mod 2]→ (Z₂, +)',
+        G1: z12, G2: z4, G3: z2,
+        sigma: Array.from({ length: 12 }, (_, x) => x % 4),
+        tau: [0, 1, 0, 1],
+        sigmaName: 'σ(x) = x mod 4',
+        tauName: 'τ(y) = y mod 2',
+        kindDesc: '满同态的复合 τ∘σ 仍是满同态，且核扩张包含：ker σ = {0,4,8} ⊆ ker(τ∘σ) = {0,2,4,6,8,10}。',
+      },
+      d4_v4_z2: {
+        name: '非交换群复合：D₄ —[模中心]→ V₄ —[V₄→Z₂]→ Z₂',
+        G1: d4, G2: v4, G3: z2,
+        sigma: [0, 1, 0, 1, 2, 3, 2, 3],
+        tau: [0, 0, 1, 1],
+        sigmaName: 'σ: D₄ → D₄/{1,r²}',
+        tauName: 'τ: V₄ → V₄/{1,a}',
+        kindDesc: '即使原群 D₄ 非交换，复合映射 τ∘σ 依然忠实保持群运算，核由 {1,r²} 扩张为旋转子群 {1,r,r²,r³}。',
+      },
+      z4_i4_inv: {
+        name: '同构传递 & Abel 取逆自同构 (p.122)：(Z₄, +) —[k↦i^k]→ U₄ —[z↦z⁻¹]→ U₄',
+        G1: z4, G2: i4, G3: i4,
+        sigma: [0, 1, 2, 3],
+        tau: [0, 3, 2, 1],
+        sigmaName: 'σ(k) = i^k (同构)',
+        tauName: 'τ(z) = z⁻¹ (Abel 自同构)',
+        kindDesc: '同构 σ 与 Abel 群取逆自同构 τ(z)=z⁻¹ 复合后仍是同构（体现同构传递性 & Abel 群取逆保运算）。',
       },
     };
   }
 
   function render(container, ctx) {
     const HOMS = buildHomPresets();
-    let tab = 'collapse'; // 'collapse' | 'correspond'
+    const COMPS = buildComposePresets();
+    let tab = 'collapse'; // 'collapse' | 'triangle' | 'compose' | 'correspond'
     let homKey = 'z12_z4';
     let collapseT = 0; // 0 .. 1
     let cancelAnim = null;
     let cosetPickA = 1;
     let cosetPickB = 2;
+
+    let compKey = 'z12_z4_z2';
+    let compPickA = 1;
+    let compPickB = 2;
 
     let selectedHIdx = 0;
 
@@ -94,12 +170,30 @@
         tab = 'collapse';
         homKey = 'z12_z4';
         collapseT = 1;
+      } else if (p === 'collapse-trivial') {
+        tab = 'collapse';
+        homKey = 'z6_trivial';
+        collapseT = 0;
+      } else if (p === 'collapse-exp-i4') {
+        tab = 'collapse';
+        homKey = 'z12_i4';
+        collapseT = 0;
       } else if (p === 'isomorphism-z4') {
         tab = 'collapse';
         homKey = 'z4_i4';
         collapseT = 0;
       } else if (p === 'hom-triangle') {
         tab = 'triangle';
+      } else if (p === 'hom-compose') {
+        tab = 'compose';
+        compKey = 'z12_z4_z2';
+        compPickA = 1;
+        compPickB = 2;
+      } else if (p === 'automorphism-inv') {
+        tab = 'compose';
+        compKey = 'z4_i4_inv';
+        compPickA = 1;
+        compPickB = 2;
       } else {
         tab = 'collapse';
         homKey = 'z12_z4';
@@ -129,6 +223,10 @@
             onClick: () => { tab = 'triangle'; renderAll(); },
           }, '三圆同态交换三角图（群·环·有限域）'),
           htmlEl('button', {
+            className: `lab-tab ${tab === 'compose' ? 'active' : ''}`,
+            onClick: () => { tab = 'compose'; renderAll(); },
+          }, '同态复合链 (τ ∘ σ) & 自同构'),
+          htmlEl('button', {
             className: `lab-tab ${tab === 'correspond' ? 'active' : ''}`,
             onClick: () => { tab = 'correspond'; renderAll(); },
           }, '子群对应定理 & 易错 HN 吸核膨胀'),
@@ -140,6 +238,11 @@
         const host = htmlEl('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' } });
         container.appendChild(host);
         DM2.HomTriangle.mount(host, 'grp_z12_z4');
+        return;
+      }
+
+      if (tab === 'compose') {
+        renderComposeTab();
         return;
       }
 
@@ -550,6 +653,163 @@
       }
 
       body.appendChild(box);
+      panel.appendChild(body);
+      container.appendChild(panel);
+    }
+
+    // -------------------------------------------------------------------------
+    // Tab 4: Homomorphism & Isomorphism Composition Closure (tau o sigma)
+    // -------------------------------------------------------------------------
+    function renderComposeTab() {
+      const cp = COMPS[compKey] || COMPS.z12_z4_z2;
+      const { G1, G2, G3, sigma, tau } = cp;
+      if (compPickA >= G1.order) compPickA = 0;
+      if (compPickB >= G1.order) compPickB = Math.min(1, G1.order - 1);
+
+      const compMap = sigma.map((y) => tau[y]);
+      let allHom = true;
+      for (let x = 0; x < G1.order && allHom; x++) {
+        for (let y = 0; y < G1.order; y++) {
+          if (compMap[G1.mul(x, y)] !== G3.mul(compMap[x], compMap[y])) {
+            allHom = false;
+            break;
+          }
+        }
+      }
+      const kerSigma = [];
+      const kerComp = [];
+      for (let x = 0; x < G1.order; x++) {
+        if (sigma[x] === G2.identityIdx) kerSigma.push(G1.labels[x]);
+        if (compMap[x] === G3.identityIdx) kerComp.push(G1.labels[x]);
+      }
+
+      const bar = htmlEl('div', { className: 'controls-bar' }, [
+        htmlEl('div', { className: 'ctrl-group' }, [
+          htmlEl('label', {}, '复合链预设：'),
+          ...Object.entries(COMPS).map(([k, v]) => htmlEl('button', {
+            className: `btn btn-sm ${compKey === k ? 'active' : ''}`,
+            onClick: () => { compKey = k; compPickA = 1 % G1.order; compPickB = 2 % G1.order; renderAll(); },
+          }, v.name.split('：')[0])),
+        ]),
+        htmlEl('div', { className: 'ctrl-group' }, [
+          htmlEl('label', {}, '测试元素 a：'),
+          (() => {
+            const s = htmlEl('select', { className: 'ctrl-select' });
+            G1.labels.forEach((l, i) => {
+              const o = htmlEl('option', { value: i }, l);
+              if (i === compPickA) o.selected = true;
+              s.appendChild(o);
+            });
+            s.addEventListener('change', () => { compPickA = Number(s.value); renderAll(); });
+            return s;
+          })(),
+          htmlEl('label', {}, 'b：'),
+          (() => {
+            const s = htmlEl('select', { className: 'ctrl-select' });
+            G1.labels.forEach((l, i) => {
+              const o = htmlEl('option', { value: i }, l);
+              if (i === compPickB) o.selected = true;
+              s.appendChild(o);
+            });
+            s.addEventListener('change', () => { compPickB = Number(s.value); renderAll(); });
+            return s;
+          })(),
+        ]),
+      ]);
+      container.appendChild(bar);
+
+      const ab = G1.mul(compPickA, compPickB);
+      const sigA = sigma[compPickA], sigB = sigma[compPickB], sigAB = sigma[ab];
+      const tauSigA = tau[sigA], tauSigB = tau[sigB], tauSigAB = tau[sigAB];
+      const rhs3 = G3.mul(tauSigA, tauSigB);
+
+      const panel = htmlEl('div', { className: 'panel' });
+      panel.appendChild(htmlEl('div', { className: 'panel-head' }, [
+        htmlEl('span', { className: 'panel-title' }, cp.name),
+        htmlEl('span', { className: `chip ${allHom ? 'ok' : 'bad'}` },
+          allHom ? `✓ 穷举 ${G1.order}×${G1.order} 对元素验证：τ∘σ 必保持群运算` : '✗ 复合失败'),
+      ]));
+      const body = htmlEl('div', { className: 'panel-body' });
+      const box = htmlEl('div', { className: 'canvas-box' });
+      const svg = createSvg(780, 300);
+      box.appendChild(svg);
+
+      const cols = [
+        { grp: G1, x: 130, title: `G₁ = ${G1.id}`, col: 'var(--accent-blue)' },
+        { grp: G2, x: 390, title: `G₂ = ${G2.id}`, col: 'var(--accent-teal)' },
+        { grp: G3, x: 650, title: `G₃ = ${G3.id}`, col: 'var(--accent-purple)' },
+      ];
+      svg.appendChild(el('text', { x: 260, y: 24, 'text-anchor': 'middle', fill: 'var(--accent-teal)', 'font-size': 12, 'font-weight': 800 }, cp.sigmaName));
+      svg.appendChild(el('text', { x: 520, y: 24, 'text-anchor': 'middle', fill: 'var(--accent-purple)', 'font-size': 12, 'font-weight': 800 }, cp.tauName));
+      svg.appendChild(el('path', {
+        d: 'M 155 268 Q 390 296, 625 268', fill: 'none', stroke: 'var(--accent-green)', 'stroke-width': 2.2, 'stroke-dasharray': '5 3', 'marker-end': 'url(#arrow-green)',
+      }));
+      svg.appendChild(el('text', { x: 390, y: 292, 'text-anchor': 'middle', fill: 'var(--accent-green)', 'font-size': 11.5, 'font-weight': 800 }, '复合映射 τ∘σ : G₁ → G₃ 封闭为群同态'));
+
+      const posMap = cols.map((c) => {
+        svg.appendChild(el('text', { x: c.x, y: 24, 'text-anchor': 'middle', fill: c.col, 'font-size': 13, 'font-weight': 800 }, c.title));
+        const n = c.grp.order;
+        const pts = [];
+        for (let i = 0; i < n; i++) {
+          const y = n === 1 ? 150 : 52 + (i * 195) / (n - 1);
+          pts.push({ x: c.x, y });
+        }
+        return pts;
+      });
+
+      // Muted background arrows
+      for (let i = 0; i < G1.order; i++) {
+        const p1 = posMap[0][i], p2 = posMap[1][sigma[i]];
+        const hi = i === compPickA || i === compPickB || i === ab;
+        svg.appendChild(el('line', {
+          x1: p1.x + 16, y1: p1.y, x2: p2.x - 16, y2: p2.y,
+          stroke: i === ab ? 'var(--accent-green)' : (i === compPickA || i === compPickB) ? 'var(--accent-blue)' : 'var(--svg-line-muted)',
+          'stroke-width': hi ? 2.6 : 1,
+          'marker-end': hi ? 'url(#arrow-blue)' : 'none',
+        }));
+      }
+      for (let j = 0; j < G2.order; j++) {
+        const p2 = posMap[1][j], p3 = posMap[2][tau[j]];
+        const hi = j === sigA || j === sigB || j === sigAB;
+        svg.appendChild(el('line', {
+          x1: p2.x + 16, y1: p2.y, x2: p3.x - 16, y2: p3.y,
+          stroke: j === sigAB ? 'var(--accent-green)' : (j === sigA || j === sigB) ? 'var(--accent-amber)' : 'var(--svg-line-muted)',
+          'stroke-width': hi ? 2.6 : 1,
+          'marker-end': hi ? 'url(#arrow-amber)' : 'none',
+        }));
+      }
+
+      // Draw nodes
+      cols.forEach((c, ci) => {
+        for (let i = 0; i < c.grp.order; i++) {
+          const pt = posMap[ci][i];
+          const isRes = (ci === 0 && i === ab) || (ci === 1 && i === sigAB) || (ci === 2 && i === tauSigAB);
+          const isOp = (ci === 0 && (i === compPickA || i === compPickB))
+            || (ci === 1 && (i === sigA || i === sigB))
+            || (ci === 2 && (i === tauSigA || i === tauSigB));
+          const fill = isRes ? 'var(--accent-green)' : isOp ? 'var(--accent-amber)' : 'var(--svg-node-fill)';
+          svg.appendChild(el('circle', {
+            cx: pt.x, cy: pt.y, r: c.grp.order > 8 ? 10 : 13,
+            fill, stroke: isRes ? 'var(--accent-green)' : c.col, 'stroke-width': (isRes || isOp) ? 2.4 : 1.5,
+          }));
+          svg.appendChild(el('text', {
+            x: pt.x, y: pt.y + 4, 'text-anchor': 'middle',
+            fill: (isRes || isOp) ? '#FFFFFF' : 'var(--text-primary)',
+            'font-size': c.grp.order > 8 ? 9.5 : 11, 'font-weight': 700,
+          }, c.grp.labels[i]));
+        }
+      });
+
+      body.appendChild(box);
+      body.appendChild(htmlEl('div', { className: 'formula-banner info', style: { marginTop: '10px' } }, [
+        htmlEl('div', {
+          innerHTML: renderTex(
+            `(\\tau\\circ\\sigma)(${G1.labels[compPickA]} ${G1.opSymbol} ${G1.labels[compPickB]}) = (\\tau\\circ\\sigma)(${G1.labels[ab]}) = ${G3.labels[tauSigAB]}`
+            + ` = ${G3.labels[tauSigA]} ${G3.opSymbol} ${G3.labels[tauSigB]} = (\\tau\\circ\\sigma)(${G1.labels[compPickA]}) ${G3.opSymbol} (\\tau\\circ\\sigma)(${G1.labels[compPickB]})`
+          ),
+        }),
+        htmlEl('span', { style: { fontSize: '12px' } }, `${cp.kindDesc} 核嵌套：ker σ = {${kerSigma.join(', ')}} ⊆ ker(τ∘σ) = {${kerComp.join(', ')}}。`),
+      ]));
       panel.appendChild(body);
       container.appendChild(panel);
     }

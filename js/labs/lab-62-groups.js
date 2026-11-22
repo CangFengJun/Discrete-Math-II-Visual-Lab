@@ -67,7 +67,7 @@
       idempotents: [0],
       missingInv: [1, 2, 3, 4, 5],
       isGroup: false,
-      note: '易错结论 p.25：{2ⁿ} 在完整自然数上封闭且结合（是半群），但除 1=2⁰ 外其余元素均无乘法逆元，不是群。（注：表格受限于尺寸以 ≥32 截断示意）',
+      note: '易错/例题 p.25, p.47：({2ⁿ}, ×) 及无穷消去半群 (ℤ⁺, +)、(ℕ, +)、(ℤ\\{0}, ×) 虽封闭且结合，但缺少单位元或逆元，不是群；而有限消去半群必满足可除条件，从而构成群！',
     },
   };
 
@@ -89,6 +89,9 @@
       if (p === 'semigroup-check') {
         tab = 'axioms';
         axiomKey = 'pow2';
+      } else if (p === 'group-z7-mul') {
+        tab = 'axioms';
+        axiomKey = 'z7mul';
       } else if (p === 'group-z8-compare') {
         tab = 'axioms';
         axiomKey = 'z8mul';
@@ -97,6 +100,12 @@
         sn = 4;
         sigma = [2, 3, 1, 4]; // (1 2 3)
         tau = [1, 2, 4, 3];   // (3 4)
+        orbitPow = 1;
+      } else if (p === 'perm-s4-types') {
+        tab = 'perm';
+        sn = 4;
+        sigma = [2, 1, 4, 3]; // (1 2)(3 4)
+        tau = [1, 2, 3, 4];
         orbitPow = 1;
       } else if (p === 'perm-parity' || p === 'perm-braid') {
         tab = 'perm';
@@ -547,6 +556,50 @@
       parityBody.appendChild(pGrid);
       parityPanel.appendChild(parityBody);
       container.appendChild(parityPanel);
+
+      // Cycle-type, Parity & Order Distribution of S_n (p.50, p.63, p.68)
+      const allSn = M.generateSn(sn);
+      const typeMap = new Map();
+      for (const perm of allSn) {
+        const cycLens = M.permToDisjointCycles(perm, false).map((c) => c.length).sort((a, b) => a - b);
+        const key = cycLens.length ? cycLens.join('+') : 'id';
+        if (!typeMap.has(key)) {
+          typeMap.set(key, {
+            key,
+            cycLens,
+            shape: cycLens.length ? cycLens.map((len) => `${len}-轮换`).join(' · ') : '恒等置换 I',
+            count: 0,
+            order: M.permOrder(perm),
+            isEven: M.permParity(perm).isEven,
+            sample: perm,
+          });
+        }
+        typeMap.get(key).count++;
+      }
+      const distPanel = htmlEl('div', { className: 'panel' });
+      distPanel.appendChild(htmlEl('div', { className: 'panel-head' }, [
+        htmlEl('span', { className: 'panel-title' }, `S_${sn}（共 ${allSn.length} 个元素）轮换型、奇偶性与周期分布（点击可加载代表元）`),
+        htmlEl('span', { className: 'chip ok' }, `交代群 A_${sn}（偶置换）共 ${allSn.length / 2} 个`),
+      ]));
+      distPanel.appendChild(htmlEl('div', { className: 'panel-body' }, [
+        htmlEl('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px' } },
+          Array.from(typeMap.values()).map((info) => htmlEl('button', {
+            className: `btn btn-sm ${M.permEquals(compST, info.sample) ? 'btn-primary' : ''}`,
+            style: { height: 'auto', padding: '6px 10px', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' },
+            onClick: () => {
+              sigma = info.sample.slice();
+              tau = M.permIdentity(sn);
+              orbitPow = 1;
+              renderAll();
+            },
+          }, [
+            htmlEl('span', {}, `${info.shape}：${info.count} 个`),
+            htmlEl('span', { style: { fontSize: '11px', fontWeight: 500, opacity: 0.85 } },
+              `${info.isEven ? '偶置换' : '奇置换'} · 周期 ${info.order} · 例 ${M.permFormatCycle(info.sample)}`),
+          ]))
+        ),
+      ]));
+      container.appendChild(distPanel);
     }
 
     // -------------------------------------------------------------------------

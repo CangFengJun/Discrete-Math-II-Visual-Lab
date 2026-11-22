@@ -620,7 +620,7 @@ table.alg-table td.hl-amber {
   font-weight: 700;
 }
 
-/* Right Knowledge Drawer (222 Cards Dual-Link) */
+/* Right Knowledge Drawer (267 Cards Dual-Link) */
 .knowledge-drawer {
   width: 400px;
   flex-shrink: 0;
@@ -734,6 +734,8 @@ table.alg-table td.hl-amber {
 .kcard-prop { border-left-color: var(--card-prop-border); background: var(--card-prop-bg); }
 .kcard-prop .kcard-head { background: var(--card-prop-head); }
 .kbadge-prop { background: var(--card-prop-border); }
+.kbadge-example { background: var(--badge-example-bg); }
+.kbadge-supplement { background: var(--badge-supplement-bg); }
 
 .kcard-table { border-left-color: var(--card-table-border); background: var(--card-table-bg); }
 .kcard-table .kcard-head { background: var(--card-table-head); }

@@ -1014,9 +1014,9 @@
     let b = polyDivModFp(base, modPoly, p).r;
     let e = exp;
     while (e > 0) {
-      if (e & 1) res = polyDivModFp(polyMulFp(res, b, p), modPoly, p).r;
+      if (e % 2 === 1) res = polyDivModFp(polyMulFp(res, b, p), modPoly, p).r;
       b = polyDivModFp(polyMulFp(b, b, p), modPoly, p).r;
-      e >>= 1;
+      e = Math.floor(e / 2);
     }
     return res;
   }
@@ -1064,6 +1064,10 @@
     const factors = [];
 
     for (let d = 1; d <= Math.floor(polyDeg(rem) / 2); d++) {
+      // Distinct-degree guard: rem has a degree-d irreducible factor iff gcd(rem, x^{p^d} - x) != 1
+      const xPd = polyPowModFp([1, 0], Math.pow(p, d), rem, p);
+      const ddfGcd = polyGcdExtFp(rem, polySubFp(xPd, [1, 0], p), p).d;
+      if (polyDeg(ddfGcd) === 0) continue;
       const candidates = allMonicPolysDegFp(d, p);
       for (const cand of candidates) {
         if (polyDeg(rem) < 2 * d) break;

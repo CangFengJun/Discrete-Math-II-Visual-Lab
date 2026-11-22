@@ -210,10 +210,10 @@
     return null;
   }
 
-  function mount(hostEl, ctx) {
-    let selectedId = 'domain';
+  function mount(hostEl, ctx, opts = {}) {
+    let selectedId = (opts && opts.selectedId && ALGEBRAIC_DATA[opts.selectedId]) ? opts.selectedId : 'domain';
     let hoveredId = null;
-    let isFinite = false;
+    let isFinite = !!(opts && opts.isFinite);
 
     function getActiveId() {
       return hoveredId || selectedId || 'domain';
@@ -484,8 +484,8 @@
       leftBody.appendChild(box);
       if (isFinite) {
         leftBody.appendChild(htmlEl('div', { className: 'formula-banner', style: { marginTop: '8px' } }, [
-          htmlEl('strong', {}, '有限阶约束已激活（Wedderburn 定理 + 6.5 结论 p.166 / p.169）'),
-          htmlEl('span', {}, '1. 有限整区必为域：整区\\体为空集，整区 = 域。  2. 有限除环必交换：非交换体不存在，体 = 域。'),
+          htmlEl('strong', {}, '有限阶四重等价已激活（Wedderburn 定理 + 6.5 结论 p.166 / p.169）'),
+          htmlEl('span', {}, '对非平凡有限环（≥2 元）：非平凡有限消去环 ⟺ 有限整区 ⟺ 有限体 ⟺ 有限域（整区\\体 与 体\\域 皆空）。'),
         ]));
       }
       leftPanel.appendChild(leftBody);

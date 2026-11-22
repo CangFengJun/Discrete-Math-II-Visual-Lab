@@ -1,6 +1,6 @@
 {
   "name": "discrete-math-ii-visual-lab",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Interactive geometric visualizations for Discrete Mathematics II (Abstract Algebra: Groups, Rings, Fields, Polynomials & Finite Fields).",
   "private": false,
   "license": "MIT",

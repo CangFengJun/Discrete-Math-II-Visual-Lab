@@ -17,17 +17,27 @@
   };
 
   function render(container, ctx) {
-    let tab = 'zn'; // 'zn' | 'ideal' | 'maximal'
+    let tab = 'zn'; // 'zn' | 'ringvenn' | 'ideal' | 'triangle' | 'compose' | 'maximal'
     let znN = 6;
+    let znMode = 'zd'; // 'zd' | 'idem'
     let qLeft = 'i';
     let qRight = 'j';
 
+    let ringVennTarget = 'domain';
+    let ringVennFinite = false;
+
     let extElem = 4; // external ring elem x in Z_12
     let inElem = 3;  // ideal elem a in 3Z_12
+    let escapeMode = 'z_in_q'; // 'z_in_q' | 'm2_subring'
     let ratFactor = '1/2';
     let intElem = 3;
+    let matA = 1;
 
-    let maxCase = 'z12_4'; // 'z12_4' | 'z12_3' | 'r2x_red' | 'r2x_irr'
+    let ringCompKey = 'z12_z4_z2';
+    let rCompA = 2;
+    let rCompB = 3;
+
+    let maxCase = 'z12_4'; // 'z12_4' | 'z12_3' | 'z5_0' | 'r2x_red' | 'r2x_irr'
     let collapsed = false;
 
     function applyPreset(p) {
@@ -35,20 +45,61 @@
       if (p === 'zero-divisor-zn') {
         tab = 'zn';
         znN = 6;
+        znMode = 'zd';
+      } else if (p === 'zn-r5-field') {
+        tab = 'zn';
+        znN = 5;
+        znMode = 'zd';
+      } else if (p === 'zn-idempotents') {
+        tab = 'zn';
+        znN = 6;
+        znMode = 'idem';
+      } else if (p === 'zn-subring-id') {
+        tab = 'zn';
+        znN = 12;
+        znMode = 'idem';
       } else if (p === 'quaternion-tri') {
         tab = 'zn';
         qLeft = 'i';
         qRight = 'j';
       } else if (p === 'ideal-blackhole') {
         tab = 'ideal';
+        escapeMode = 'z_in_q';
+      } else if (p === 'ideal-matrix') {
+        tab = 'ideal';
+        escapeMode = 'm2_subring';
       } else if (p === 'maximal-ideal') {
         tab = 'maximal';
         maxCase = 'z12_4';
         collapsed = false;
+      } else if (p === 'maximal-z12-max') {
+        tab = 'maximal';
+        maxCase = 'z12_3';
+        collapsed = true;
+      } else if (p === 'maximal-prime') {
+        tab = 'maximal';
+        maxCase = 'z5_0';
+        collapsed = true;
       } else if (p === 'ring-venn') {
         tab = 'ringvenn';
+        ringVennTarget = 'domain';
+        ringVennFinite = false;
+      } else if (p === 'ring-venn-finite') {
+        tab = 'ringvenn';
+        ringVennTarget = 'field';
+        ringVennFinite = true;
+      } else if (p === 'ring-venn-ck') {
+        tab = 'ringvenn';
+        ringVennTarget = 'ck_not_u';
+        ringVennFinite = false;
+      } else if (p === 'ring-venn-uonly') {
+        tab = 'ringvenn';
+        ringVennTarget = 'u_only';
+        ringVennFinite = false;
       } else if (p === 'ring-hom-triangle') {
         tab = 'triangle';
+      } else if (p === 'ring-compose') {
+        tab = 'compose';
       }
       renderAll();
     }
@@ -82,6 +133,10 @@
             onClick: () => { tab = 'triangle'; renderAll(); },
           }, '三圆环同态三角图（黑板原图）'),
           htmlEl('button', {
+            className: `lab-tab ${tab === 'compose' ? 'active' : ''}`,
+            onClick: () => { tab = 'compose'; renderAll(); },
+          }, '环同态复合链 (τ ∘ σ)'),
+          htmlEl('button', {
             className: `lab-tab ${tab === 'maximal' ? 'active' : ''}`,
             onClick: () => { tab = 'maximal'; renderAll(); },
           }, '极大理想 ⇔ 单纯环 ⇔ 域 塌缩机'),
@@ -93,12 +148,13 @@
       else if (tab === 'ringvenn') {
         const host = htmlEl('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' } });
         container.appendChild(host);
-        DM2.RingVenn.mount(host, ctx);
+        DM2.RingVenn.mount(host, ctx, { selectedId: ringVennTarget, isFinite: ringVennFinite });
       } else if (tab === 'triangle') {
         const host = htmlEl('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' } });
         container.appendChild(host);
         DM2.HomTriangle.mount(host, 'ring_z12_z4');
-      } else if (tab === 'ideal') renderIdealTab();
+      } else if (tab === 'compose') renderRingComposeTab();
+      else if (tab === 'ideal') renderIdealTab();
       else renderMaximalTab();
     }
 
@@ -109,7 +165,10 @@
       const prime = M.isPrime(znN);
       const zeroDivisors = new Set();
       const units = new Set();
-      for (let a = 1; a < znN; a++) {
+      const idempotents = [];
+      for (let a = 0; a < znN; a++) {
+        if ((a * a) % znN === a) idempotents.push(a);
+        if (a === 0) continue;
         let isZd = false;
         let hasInv = false;
         for (let b = 1; b < znN; b++) {
@@ -129,6 +188,16 @@
             return r;
           })(),
         ]),
+        htmlEl('div', { className: 'ctrl-group' }, [
+          htmlEl('button', {
+            className: `btn btn-sm ${znMode === 'zd' ? 'active' : ''}`,
+            onClick: () => { znMode = 'zd'; renderAll(); },
+          }, '零因子 & 乘法逆元'),
+          htmlEl('button', {
+            className: `btn btn-sm ${znMode === 'idem' ? 'active' : ''}`,
+            onClick: () => { znMode = 'idem'; renderAll(); },
+          }, '幂等元 (a²=a) & 子环单位元'),
+        ]),
         htmlEl('span', { className: `chip ${prime ? 'ok' : 'bad'}` },
           prime
             ? `✓ p=${znN} 为质数：无零因子（消去环），所有非零元有逆 → 构成域！`
@@ -142,23 +211,30 @@
       // Left: Z_n multiplication table radar
       const leftPanel = htmlEl('div', { className: 'panel' });
       leftPanel.appendChild(htmlEl('div', { className: 'panel-head' }, [
-        htmlEl('span', { className: 'panel-title' }, `Z_${znN} 乘法表雷达（红=零因子对 ab≡0，绿=可逆元 1）`),
+        htmlEl('span', { className: 'panel-title' }, znMode === 'idem'
+          ? `Z_${znN} 乘法表主对角扫描（琥珀=幂等元 a²≡a，共 ${idempotents.length} 个）`
+          : `Z_${znN} 乘法表雷达（红=零因子对 ab≡0，绿=可逆元 1）`),
       ]));
       const leftBody = htmlEl('div', { className: 'panel-body' });
 
       const tbl = htmlEl('table', { className: 'alg-table' });
       tbl.appendChild(htmlEl('thead', {}, htmlEl('tr', {}, [
         htmlEl('th', {}, '·'),
-        ...Array.from({ length: znN }, (_, j) => htmlEl('th', { className: zeroDivisors.has(j) ? 'hl-bad' : '' }, String(j))),
+        ...Array.from({ length: znN }, (_, j) => htmlEl('th', { className: znMode === 'zd' && zeroDivisors.has(j) ? 'hl-bad' : '' }, String(j))),
       ])));
       const tbody = htmlEl('tbody');
       for (let i = 0; i < znN; i++) {
-        const tr = htmlEl('tr', {}, [htmlEl('th', { className: zeroDivisors.has(i) ? 'hl-bad' : '' }, String(i))]);
+        const tr = htmlEl('tr', {}, [htmlEl('th', { className: znMode === 'zd' && zeroDivisors.has(i) ? 'hl-bad' : '' }, String(i))]);
         for (let j = 0; j < znN; j++) {
           const val = (i * j) % znN;
           let cls = '';
-          if (i > 0 && j > 0 && val === 0) cls = 'hl-bad';
-          else if (val === 1) cls = 'hl-ok';
+          if (znMode === 'idem') {
+            if (i === j && val === i) cls = 'hl-amber';
+            else if (i === j) cls = 'hl-blue';
+          } else {
+            if (i > 0 && j > 0 && val === 0) cls = 'hl-bad';
+            else if (val === 1) cls = 'hl-ok';
+          }
           tr.appendChild(htmlEl('td', { className: cls }, String(val)));
         }
         tbody.appendChild(tr);
@@ -166,10 +242,31 @@
       tbl.appendChild(tbody);
       leftBody.appendChild(htmlEl('div', { className: 'alg-table-wrap' }, tbl));
 
+      // Additive & Multiplicative orders + Idempotent / Subring identity summary
+      const orderSamples = [];
+      for (let a = 1; a < znN; a++) {
+        const addOrd = znN / M.gcd(znN, a);
+        let mulOrd = null;
+        if (units.has(a)) {
+          let cur = a, k = 1;
+          while (cur !== 1 && k <= znN) { cur = (cur * a) % znN; k++; }
+          mulOrd = k;
+        }
+        orderSamples.push(`${a}: 加${addOrd}${mulOrd !== null ? `/乘${mulOrd}` : ''}`);
+      }
+      const subIdNote = znN === 6
+        ? ' · 子环 {0,2,4} 以 4 为单位元（异位于大环 1）'
+        : znN === 12
+          ? ' · 子环 {0,4,8} 单位元为 4、{0,3,6,9} 单位元为 9、{0,2,4,6,8,10} 无单位元'
+          : '';
       leftBody.appendChild(htmlEl('div', { className: 'formula-banner info', style: { marginTop: '10px' } }, [
-        htmlEl('span', {}, prime
-          ? `性质 13–14 (p.159–161) 与结论 (p.172)：Z_${znN} 中每个非零元的加法周期都等于质数 ${znN}，且有限整区必为域。`
-          : `反例见证：在 Z_${znN} 中非零元加法周期仍是 ${znN}（合数），这恰好证明存在零因子的环不是消去环！`),
+        htmlEl('span', {}, znMode === 'idem'
+          ? `幂等元 (a²≡a)：{${idempotents.join(', ')}} 共 ${idempotents.length} 个（整区/体/域仅有 {0,1} 共 2 个，群仅有 {1} 共 1 个）${subIdNote}`
+          : (prime
+            ? `性质 13–14 & p.171–172：Z_${znN} 中非零元加法周期均为 ${znN}，且有限整区必为域。`
+            : `反例见证：在 Z_${znN} 中各非零元加法阶仍整除 |R|=${znN}，且存在零因子故不是消去环。`)),
+        htmlEl('span', { style: { fontSize: '11.5px', color: 'var(--text-muted)' } },
+          `各非零元周期（加阶/乘阶）：${orderSamples.join('，')}`),
       ]));
       leftPanel.appendChild(leftBody);
       grid.appendChild(leftPanel);
@@ -246,7 +343,8 @@
         className: `formula-banner ${ab === ba ? '' : 'warn'}`,
         style: { marginTop: '10px' },
         innerHTML: `${renderTex(`${qLeft} \\cdot ${qRight} = ${ab}, \\qquad ${qRight} \\cdot ${qLeft} = ${ba}`)}
-          <span style="font-size:12px;">${ab === ba ? '此对可交换；任意非零元 q = a+bi+cj+dk 均有逆元 q⁻¹ = (a-bi-cj-dk)/(a²+b²+c²+d²)，故为体。' : '乘法顺序颠倒变号！违反交换律，故四元数体是体但不是域。'}</span>`,
+          ${renderTex(`u = a+bi+cj+dk \\neq 0 \\implies u^{-1} = \\frac{1}{u\\hat{u}}\\hat{u} = \\frac{a-bi-cj-dk}{a^2+b^2+c^2+d^2}`)}
+          <span style="font-size:12px;">${ab === ba ? '此对可交换；但四元数全体因 ij≠ji 违背交换律，故是体但不是域（例：(1+i+j+k)⁻¹ = ¼(1-i-j-k)）。' : '乘法顺序颠倒变号！违反交换律，故四元数体是体但不是域（仅含 {0} 与自身两个平凡理想）。'}</span>`,
       }));
       rightPanel.appendChild(rightBody);
       grid.appendChild(rightPanel);
@@ -285,12 +383,31 @@
           }, String(a))),
         ]),
         htmlEl('div', { className: 'ctrl-group' }, [
-          htmlEl('label', {}, 'ℚ 中外部元素 x：'),
-          ...Object.keys(ratMap).map((rk) => htmlEl('button', {
-            className: `btn btn-sm ${ratFactor === rk ? 'active' : ''}`,
-            onClick: () => { ratFactor = rk; renderAll(); },
-          }, rk)),
+          htmlEl('label', {}, '右窗子环非理想反例：'),
+          htmlEl('button', {
+            className: `btn btn-sm ${escapeMode === 'z_in_q' ? 'active' : ''}`,
+            onClick: () => { escapeMode = 'z_in_q'; renderAll(); },
+          }, '整数环 ℤ ⊂ ℚ'),
+          htmlEl('button', {
+            className: `btn btn-sm ${escapeMode === 'm2_subring' ? 'active' : ''}`,
+            onClick: () => { escapeMode = 'm2_subring'; renderAll(); },
+          }, '矩阵子环 ⊂ M₂(ℝ) (p.181)'),
         ]),
+        escapeMode === 'z_in_q'
+          ? htmlEl('div', { className: 'ctrl-group' }, [
+              htmlEl('label', {}, 'ℚ 中外部元素 x：'),
+              ...Object.keys(ratMap).map((rk) => htmlEl('button', {
+                className: `btn btn-sm ${ratFactor === rk ? 'active' : ''}`,
+                onClick: () => { ratFactor = rk; renderAll(); },
+              }, rk)),
+            ])
+          : htmlEl('div', { className: 'ctrl-group' }, [
+              htmlEl('label', {}, 'N 中矩阵元 [[a,0],[0,0]] 参数 a：'),
+              ...[1, 2, -1].map((v) => htmlEl('button', {
+                className: `btn btn-sm ${matA === v ? 'active' : ''}`,
+                onClick: () => { matA = v; renderAll(); },
+              }, `a = ${v}`)),
+            ]),
       ]);
       container.appendChild(bar);
 
@@ -347,54 +464,97 @@
       leftPanel.appendChild(leftBody);
       grid.appendChild(leftPanel);
 
-      // Right SVG: Subring Z inside Q (Escapes!)
+      // Right SVG: Subring Z inside Q OR M_2(R) Subring Counterexample (p.181)
       const rightPanel = htmlEl('div', { className: 'panel' });
-      rightPanel.appendChild(htmlEl('div', { className: 'panel-head' }, [
-        htmlEl('span', { className: 'panel-title' }, '子环 ℤ ⊂ ℚ：是子环，但不是理想（外部乘积会逃逸！）'),
-        htmlEl('span', { className: `chip ${staysInZ ? 'ok' : 'bad'}` }, `(${ratFactor}) × ${intElem} = ${Number.isInteger(prodRat) ? prodRat : prodRat.toFixed(2)} ${staysInZ ? '∈ ℤ' : '∉ ℤ'}`),
-      ]));
-      const rightBody = htmlEl('div', { className: 'panel-body' });
-      const box2 = htmlEl('div', { className: 'canvas-box' });
-      const svg2 = createSvg(400, 260);
-      box2.appendChild(svg2);
+      if (escapeMode === 'z_in_q') {
+        rightPanel.appendChild(htmlEl('div', { className: 'panel-head' }, [
+          htmlEl('span', { className: 'panel-title' }, '子环 ℤ ⊂ ℚ：是子环，但不是理想（外部乘积会逃逸！）'),
+          htmlEl('span', { className: `chip ${staysInZ ? 'ok' : 'bad'}` }, `(${ratFactor}) × ${intElem} = ${Number.isInteger(prodRat) ? prodRat : prodRat.toFixed(2)} ${staysInZ ? '∈ ℤ' : '∉ ℤ'}`),
+        ]));
+        const rightBody = htmlEl('div', { className: 'panel-body' });
+        const box2 = htmlEl('div', { className: 'canvas-box' });
+        const svg2 = createSvg(400, 260);
+        box2.appendChild(svg2);
 
-      svg2.appendChild(el('rect', { x: 16, y: 16, width: 368, height: 228, rx: 18, fill: 'var(--accent-amber-soft)', stroke: 'var(--accent-amber)', 'stroke-width': 1.8 }));
-      svg2.appendChild(el('text', { x: 32, y: 38, fill: 'var(--accent-amber)', 'font-size': 12.5, 'font-weight': 800 }, '大环 R = 有理数域 ℚ'));
+        svg2.appendChild(el('rect', { x: 16, y: 16, width: 368, height: 228, rx: 18, fill: 'var(--accent-amber-soft)', stroke: 'var(--accent-amber)', 'stroke-width': 1.8 }));
+        svg2.appendChild(el('text', { x: 32, y: 38, fill: 'var(--accent-amber)', 'font-size': 12.5, 'font-weight': 800 }, '大环 R = 有理数域 ℚ'));
 
-      svg2.appendChild(el('circle', { cx: 180, cy: 138, r: 72, fill: 'var(--bg-panel)', stroke: 'var(--accent-purple)', 'stroke-width': 2.2 }));
-      svg2.appendChild(el('text', { x: 180, y: 86, 'text-anchor': 'middle', fill: 'var(--accent-purple)', 'font-size': 12, 'font-weight': 800 }, '子环 S = 整数环 ℤ'));
+        svg2.appendChild(el('circle', { cx: 180, cy: 138, r: 72, fill: 'var(--bg-panel)', stroke: 'var(--accent-purple)', 'stroke-width': 2.2 }));
+        svg2.appendChild(el('text', { x: 180, y: 86, 'text-anchor': 'middle', fill: 'var(--accent-purple)', 'font-size': 12, 'font-weight': 800 }, '子环 S = 整数环 ℤ'));
 
-      svg2.appendChild(el('circle', { cx: 166, cy: 142, r: 16, fill: 'var(--accent-purple)' }));
-      svg2.appendChild(el('text', { x: 166, y: 146.5, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 12, 'font-weight': 800 }, String(intElem)));
+        svg2.appendChild(el('circle', { cx: 166, cy: 142, r: 16, fill: 'var(--accent-purple)' }));
+        svg2.appendChild(el('text', { x: 166, y: 146.5, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 12, 'font-weight': 800 }, String(intElem)));
 
-      const outTarget = staysInZ ? { x: 214, y: 142 } : { x: 324, y: 120 };
-      svg2.appendChild(el('circle', { cx: 64, cy: 138, r: 16, fill: 'var(--accent-amber)' }));
-      svg2.appendChild(el('text', { x: 64, y: 142.5, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 11, 'font-weight': 800 }, ratFactor));
+        const outTarget = staysInZ ? { x: 214, y: 142 } : { x: 324, y: 120 };
+        svg2.appendChild(el('circle', { cx: 64, cy: 138, r: 16, fill: 'var(--accent-amber)' }));
+        svg2.appendChild(el('text', { x: 64, y: 142.5, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 11, 'font-weight': 800 }, ratFactor));
 
-      svg2.appendChild(el('path', {
-        d: `M 82 132 Q 190 48, ${outTarget.x} ${outTarget.y - 16}`,
-        fill: 'none',
-        stroke: staysInZ ? 'var(--accent-green)' : 'var(--accent-rose)',
-        'stroke-width': 2.6,
-        'marker-end': staysInZ ? 'url(#arrow-green)' : 'url(#arrow-rose)',
-      }));
+        svg2.appendChild(el('path', {
+          d: `M 82 132 Q 190 48, ${outTarget.x} ${outTarget.y - 16}`,
+          fill: 'none',
+          stroke: staysInZ ? 'var(--accent-green)' : 'var(--accent-rose)',
+          'stroke-width': 2.6,
+          'marker-end': staysInZ ? 'url(#arrow-green)' : 'url(#arrow-rose)',
+        }));
 
-      svg2.appendChild(el('circle', {
-        cx: outTarget.x, cy: outTarget.y, r: 18,
-        fill: staysInZ ? 'var(--accent-green)' : 'var(--accent-rose)',
-      }));
-      svg2.appendChild(el('text', {
-        x: outTarget.x, y: outTarget.y + 4.5, 'text-anchor': 'middle',
-        fill: '#FFFFFF', 'font-size': 11, 'font-weight': 800,
-      }, Number.isInteger(prodRat) ? String(prodRat) : prodRat.toFixed(1)));
+        svg2.appendChild(el('circle', {
+          cx: outTarget.x, cy: outTarget.y, r: 18,
+          fill: staysInZ ? 'var(--accent-green)' : 'var(--accent-rose)',
+        }));
+        svg2.appendChild(el('text', {
+          x: outTarget.x, y: outTarget.y + 4.5, 'text-anchor': 'middle',
+          fill: '#FFFFFF', 'font-size': 11, 'font-weight': 800,
+        }, Number.isInteger(prodRat) ? String(prodRat) : prodRat.toFixed(1)));
 
-      svg2.appendChild(el('text', {
-        x: 200, y: 234, 'text-anchor': 'middle',
-        fill: staysInZ ? 'var(--accent-green)' : 'var(--accent-rose)', 'font-size': 11.5, 'font-weight': 700,
-      }, staysInZ ? '乘以整数 2 碰巧留存，但换分数立刻逃逸！' : '粒子冲破 ℤ 边界逃逸至 ℚ \\ ℤ，无法定义剩余环乘法！'));
+        svg2.appendChild(el('text', {
+          x: 200, y: 234, 'text-anchor': 'middle',
+          fill: staysInZ ? 'var(--accent-green)' : 'var(--accent-rose)', 'font-size': 11.5, 'font-weight': 700,
+        }, staysInZ ? '乘以整数 2 碰巧留存，但换分数立刻逃逸！' : '粒子冲破 ℤ 边界逃逸至 ℚ \\ ℤ，无法定义剩余环乘法！'));
 
-      rightBody.appendChild(box2);
-      rightPanel.appendChild(rightBody);
+        rightBody.appendChild(box2);
+        rightPanel.appendChild(rightBody);
+      } else {
+        rightPanel.appendChild(htmlEl('div', { className: 'panel-head' }, [
+          htmlEl('span', { className: 'panel-title' }, '子环非理想经典反例（p.181）：N ⊂ M₂(ℝ)'),
+          htmlEl('span', { className: 'chip bad' }, '右乘留存，左乘 xa 逃逸 ∉ N'),
+        ]));
+        const rightBody = htmlEl('div', { className: 'panel-body' });
+        const box2 = htmlEl('div', { className: 'canvas-box' });
+        const svg2 = createSvg(400, 210);
+        box2.appendChild(svg2);
+
+        svg2.appendChild(el('rect', { x: 14, y: 12, width: 372, height: 186, rx: 16, fill: 'var(--accent-amber-soft)', stroke: 'var(--accent-amber)', 'stroke-width': 1.8 }));
+        svg2.appendChild(el('text', { x: 28, y: 34, fill: 'var(--accent-amber)', 'font-size': 12, 'font-weight': 800 }, '大环 R = M₂(ℝ)（二阶实矩阵环）'));
+
+        svg2.appendChild(el('circle', { cx: 185, cy: 112, r: 64, fill: 'var(--bg-panel)', stroke: 'var(--accent-purple)', 'stroke-width': 2.2 }));
+        svg2.appendChild(el('text', { x: 185, y: 66, 'text-anchor': 'middle', fill: 'var(--accent-purple)', 'font-size': 11, 'font-weight': 800 }, '子环 N = {[[a,0],[0,0]]}'));
+        svg2.appendChild(el('text', { x: 185, y: 114, 'text-anchor': 'middle', fill: 'var(--text-primary)', 'font-size': 11, 'font-weight': 700 }, `A = [[${matA},0],[0,0]] ∈ N`));
+
+        // External x
+        svg2.appendChild(el('circle', { cx: 66, cy: 112, r: 22, fill: 'var(--accent-amber)' }));
+        svg2.appendChild(el('text', { x: 66, y: 109, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 10, 'font-weight': 800 }, 'X ∈ R'));
+        svg2.appendChild(el('text', { x: 66, y: 122, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 9.5 }, '[[1,0],[1,0]]'));
+
+        // Escape dot xa outside N
+        svg2.appendChild(el('path', {
+          d: 'M 86 98 Q 200 22, 318 88',
+          fill: 'none', stroke: 'var(--accent-rose)', 'stroke-width': 2.5, 'marker-end': 'url(#arrow-rose)',
+        }));
+        svg2.appendChild(el('circle', { cx: 332, cy: 104, r: 24, fill: 'var(--accent-rose)' }));
+        svg2.appendChild(el('text', { x: 332, y: 100, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 10, 'font-weight': 800 }, 'X·A ∉ N'));
+        svg2.appendChild(el('text', { x: 332, y: 114, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': 9 }, `[[${matA},0],[${matA},0]]`));
+
+        svg2.appendChild(el('text', { x: 200, y: 186, 'text-anchor': 'middle', fill: 'var(--accent-rose)', 'font-size': 11, 'font-weight': 700 },
+          `右乘 A·X ∈ N，但左乘 X·A 第二行非零，逃出 N！故 N 不是理想`));
+
+        rightBody.appendChild(box2);
+        rightBody.appendChild(htmlEl('div', {
+          className: 'formula-banner warn',
+          style: { marginTop: '8px' },
+          innerHTML: renderTex(`x = \\begin{pmatrix} 1 & 0 \\\\ 1 & 0 \\end{pmatrix}\\in R,\\ a = \\begin{pmatrix} ${matA} & 0 \\\\ 0 & 0 \\end{pmatrix}\\in N \\implies x\\cdot a = \\begin{pmatrix} ${matA} & 0 \\\\ ${matA} & 0 \\end{pmatrix} \\notin N`),
+        }));
+        rightPanel.appendChild(rightBody);
+      }
       grid.appendChild(rightPanel);
     }
 
@@ -427,6 +587,17 @@
           edges: [['R', 'N'], ['N', '0']],
           quotientName: 'R/N ≅ Z₃ (3元域！)',
           quotientResult: '✓ 是域！R 与 N 之间无任何夹层理想，塌缩后 R/N 仅有 {0\'} 与自身（单纯环）→ 有 1 交换单纯环必为域！',
+        },
+        z5_0: {
+          name: 'R = I/5I (5元质数阶环)，取 N = {0}（单纯环 = 域！）',
+          isMaximal: true,
+          nodes: [
+            { id: 'R', label: 'R = I/5I (5元 · 质数阶)', x: 210, y: 46, aboveN: true },
+            { id: 'N', label: 'N = {0} (1元 · Lagrange |N| | 5)', x: 210, y: 195, isN: true },
+          ],
+          edges: [['R', 'N']],
+          quotientName: 'R/{0} ≅ Z₅ (5元单纯环且为域！)',
+          quotientResult: '✓ 质数阶环必单纯（p.205）：由 Lagrange 定理 |N| ∣ 5，理想只能是 {0} 或自身，故 R₅ 是单纯环且为域！',
         },
         r2x_red: {
           name: 'R = R₂[x]，取 N = (x²+1)R₂[x]（可约式，非极大！）',
@@ -545,6 +716,118 @@
       }, [
         htmlEl('strong', {}, cur.isMaximal ? '定理 6.5.8–6.5.11 验证成功' : '非极大理想反例说明'),
         htmlEl('span', {}, cur.quotientResult),
+      ]));
+      panel.appendChild(body);
+      container.appendChild(panel);
+    }
+
+    // -------------------------------------------------------------------------
+    // Tab 6: Ring Homomorphism Composition Closure (tau o sigma)
+    // -------------------------------------------------------------------------
+    function renderRingComposeTab() {
+      const RCASES = {
+        z12_z4_z2: {
+          name: '环满同态复合：I/12I —[mod 4]→ I/4I —[mod 2]→ I/2I (Z₂ 域)',
+          n1: 12, n2: 4, n3: 2,
+          desc: '设 σ([a]₁₂)=[a]₄、τ([b]₄)=[b]₂，则复合映射 (τ∘σ)([a]₁₂)=[a]₂ 同时严格保持加法与乘法！',
+        },
+        z12_z6_z3: {
+          name: '极大理想复合链：I/12I —[mod 6]→ I/6I —[mod 3]→ I/3I (Z₃ 域)',
+          n1: 12, n2: 6, n3: 3,
+          desc: '核理想满足嵌套链 {0} ⊂ ker σ = 6I/12I ⊂ ker(τ∘σ) = 3I/12I（极大理想），商得 3 元域！',
+        },
+      };
+      const rc = RCASES[ringCompKey] || RCASES.z12_z4_z2;
+      const a = rCompA % rc.n1;
+      const b = rCompB % rc.n1;
+      const sum1 = (a + b) % rc.n1;
+      const prod1 = (a * b) % rc.n1;
+      const s = (x) => x % rc.n2;
+      const t = (y) => y % rc.n3;
+      const c = (x) => t(s(x));
+
+      const bar = htmlEl('div', { className: 'controls-bar' }, [
+        htmlEl('div', { className: 'ctrl-group' }, [
+          htmlEl('label', {}, '环同态链：'),
+          ...Object.entries(RCASES).map(([k, v]) => htmlEl('button', {
+            className: `btn btn-sm ${ringCompKey === k ? 'active' : ''}`,
+            onClick: () => { ringCompKey = k; renderAll(); },
+          }, v.name.split('：')[0])),
+        ]),
+        htmlEl('div', { className: 'ctrl-group' }, [
+          htmlEl('label', {}, '取 R₁ 元素 a ='),
+          (() => {
+            const sel = htmlEl('select', { className: 'ctrl-select' });
+            for (let i = 0; i < rc.n1; i++) {
+              const o = htmlEl('option', { value: i }, String(i));
+              if (i === a) o.selected = true;
+              sel.appendChild(o);
+            }
+            sel.addEventListener('change', () => { rCompA = Number(sel.value); renderAll(); });
+            return sel;
+          })(),
+          htmlEl('label', {}, 'b ='),
+          (() => {
+            const sel = htmlEl('select', { className: 'ctrl-select' });
+            for (let i = 0; i < rc.n1; i++) {
+              const o = htmlEl('option', { value: i }, String(i));
+              if (i === b) o.selected = true;
+              sel.appendChild(o);
+            }
+            sel.addEventListener('change', () => { rCompB = Number(sel.value); renderAll(); });
+            return sel;
+          })(),
+        ]),
+      ]);
+      container.appendChild(bar);
+
+      const panel = htmlEl('div', { className: 'panel' });
+      panel.appendChild(htmlEl('div', { className: 'panel-head' }, [
+        htmlEl('span', { className: 'panel-title' }, rc.name),
+        htmlEl('span', { className: 'chip ok' }, `✓ 穷举 ${rc.n1}×${rc.n1} 对：加法与乘法双保持`),
+      ]));
+      const body = htmlEl('div', { className: 'panel-body' });
+      const box = htmlEl('div', { className: 'canvas-box' });
+      const svg = createSvg(760, 240);
+      box.appendChild(svg);
+
+      const stages = [
+        { x: 130, title: `R₁ = I/${rc.n1}I`, vals: [`a=${a}, b=${b}`, `a+b=${sum1}`, `a·b=${prod1}`], col: 'var(--accent-blue)' },
+        { x: 380, title: `R₂ = I/${rc.n2}I`, vals: [`σ(a)=${s(a)}, σ(b)=${s(b)}`, `σ(a+b)=${s(sum1)}`, `σ(a·b)=${s(prod1)}`], col: 'var(--accent-teal)' },
+        { x: 630, title: `R₃ = I/${rc.n3}I`, vals: [`τ∘σ(a)=${c(a)}, τ∘σ(b)=${c(b)}`, `τ∘σ(a+b)=${c(sum1)}`, `τ∘σ(a·b)=${c(prod1)}`], col: 'var(--accent-purple)' },
+      ];
+      svg.appendChild(el('text', { x: 255, y: 24, 'text-anchor': 'middle', fill: 'var(--accent-teal)', 'font-size': 12, 'font-weight': 800 }, `σ: mod ${rc.n2}`));
+      svg.appendChild(el('text', { x: 505, y: 24, 'text-anchor': 'middle', fill: 'var(--accent-purple)', 'font-size': 12, 'font-weight': 800 }, `τ: mod ${rc.n3}`));
+
+      const rowYs = [72, 130, 188];
+      for (let r = 0; r < 3; r++) {
+        const stroke = r === 1 ? 'var(--accent-green)' : r === 2 ? 'var(--accent-amber)' : 'var(--accent-blue)';
+        const arrow = r === 1 ? 'url(#arrow-green)' : r === 2 ? 'url(#arrow-amber)' : 'url(#arrow-blue)';
+        svg.appendChild(el('line', { x1: 205, y1: rowYs[r], x2: 300, y2: rowYs[r], stroke, 'stroke-width': 2.2, 'marker-end': arrow }));
+        svg.appendChild(el('line', { x1: 455, y1: rowYs[r], x2: 550, y2: rowYs[r], stroke, 'stroke-width': 2.2, 'marker-end': arrow }));
+      }
+      stages.forEach((st) => {
+        svg.appendChild(el('text', { x: st.x, y: 24, 'text-anchor': 'middle', fill: st.col, 'font-size': 13, 'font-weight': 800 }, st.title));
+        st.vals.forEach((txt, r) => {
+          svg.appendChild(el('rect', {
+            x: st.x - 74, y: rowYs[r] - 18, width: 148, height: 36, rx: 10,
+            fill: 'var(--svg-node-fill)', stroke: st.col, 'stroke-width': 2,
+          }));
+          svg.appendChild(el('text', {
+            x: st.x, y: rowYs[r] + 4.5, 'text-anchor': 'middle', fill: 'var(--text-primary)', 'font-size': 11.5, 'font-weight': 700,
+          }, txt));
+        });
+      });
+
+      body.appendChild(box);
+      body.appendChild(htmlEl('div', { className: 'formula-banner info', style: { marginTop: '10px' } }, [
+        htmlEl('div', {
+          innerHTML: renderTex(
+            `(\\tau\\circ\\sigma)(${a}+${b}) = ${c(sum1)} = ${c(a)}+${c(b)} \\pmod{${rc.n3}}, \\qquad `
+            + `(\\tau\\circ\\sigma)(${a}\\cdot ${b}) = ${c(prod1)} = ${c(a)}\\cdot ${c(b)} \\pmod{${rc.n3}}`
+          ),
+        }),
+        htmlEl('span', { style: { fontSize: '12px' } }, rc.desc),
       ]));
       panel.appendChild(body);
       container.appendChild(panel);

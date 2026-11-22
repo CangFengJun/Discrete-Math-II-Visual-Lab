@@ -51,6 +51,8 @@
   --card-prop-bg: #FAF8FF;
   --card-prop-head: #F3EEFF;
   --card-prop-border: #7C3AED;
+  --badge-example-bg: #4F46E5;
+  --badge-supplement-bg: #A21CAF;
 
   --card-table-bg: #F8FAFC;
   --card-table-head: #F1F5F9;
@@ -129,6 +131,8 @@
   --card-prop-bg: #171530;
   --card-prop-head: #201C45;
   --card-prop-border: #A78BFA;
+  --badge-example-bg: #818CF8;
+  --badge-supplement-bg: #E879F9;
 
   --card-table-bg: #121A2B;
   --card-table-head: #192338;

@@ -32,7 +32,8 @@
 
     // Tab 2 state
     let identP = 3;
-    let derivMode = 'real_double'; // 'real_double' | 'real_triple' | 'real_simple' | 'char_p'
+    let identMode = 'xp'; // 'xp' | 'r2_p269'
+    let derivMode = 'real_double'; // 'real_double' | 'real_triple' | 'real_simple' | 'char_p' | 'char_p3'
 
     // Tab 3 state
     let eisKey = 'x3_2';
@@ -42,7 +43,7 @@
     // Tab 4 state
     let cycN = 12;
     let cycFocusD = null; // null = all divisors, or specific d | cycN
-    let cycProjP = 0;     // 0 = Z/R_0, or 2, 3, 5
+    let cycProjP = 0;     // 0 = Z/R_0, or 2, 3, 5, 7
 
     function applyPreset(p) {
       if (!p) return;
@@ -50,13 +51,38 @@
       else if (p === 'equal-vs-ident') {
         tab = 'deriv';
         identP = 3;
-      } else if (p === 'deriv-multroot') {
+        identMode = 'xp';
+      } else if (p === 'equal-vs-ident-r2') {
+        tab = 'deriv';
+        identP = 2;
+        identMode = 'r2_p269';
+      } else if (p === 'deriv-multroot' || p === 'r2-matrix-field') {
         tab = 'deriv';
         derivMode = 'char_p';
+      } else if (p === 'deriv-multroot-r3') {
+        tab = 'deriv';
+        derivMode = 'char_p3';
       } else if (p === 'four-field-eisenstein') {
         tab = 'eisenstein';
         eisKey = 'x3_2';
         eisPrime = 2;
+      } else if (p === 'eisenstein-r2-deg5') {
+        tab = 'eisenstein';
+        eisKey = 'x5_x2_1';
+        modTestP = 2;
+      } else if (p === 'rational-root-trap') {
+        tab = 'eisenstein';
+        eisKey = 'prod6';
+      } else if (p === 'cyclotomic-char2') {
+        tab = 'cyclotomic';
+        cycN = 4;
+        cycProjP = 2;
+        cycFocusD = null;
+      } else if (p === 'cyclotomic-r7') {
+        tab = 'cyclotomic';
+        cycN = 6;
+        cycProjP = 7;
+        cycFocusD = 3;
       } else if (p === 'cyclotomic-circle') {
         tab = 'cyclotomic';
         cycN = 12;
@@ -242,24 +268,33 @@
       const leftPanel = htmlEl('div', { className: 'panel' });
       leftPanel.appendChild(htmlEl('div', { className: 'panel-head' }, [
         htmlEl('span', { className: 'panel-title' }, '概念辨析（p.268–270）：形式相等（=）vs 函数恒等（≡）'),
-        htmlEl('div', { style: { display: 'flex', gap: '4px' } }, [2, 3, 5].map((p) => htmlEl('button', {
-          className: `btn btn-sm ${identP === p ? 'active' : ''}`,
-          onClick: () => { identP = p; renderAll(); },
-        }, `R_${p}`))),
+        htmlEl('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '4px' } }, [
+          ...[2, 3, 5].map((p) => htmlEl('button', {
+            className: `btn btn-sm ${identMode === 'xp' && identP === p ? 'active' : ''}`,
+            onClick: () => { identMode = 'xp'; identP = p; renderAll(); },
+          }, `R_${p}: x^${p} vs x`)),
+          htmlEl('button', {
+            className: `btn btn-sm ${identMode === 'r2_p269' ? 'active' : ''}`,
+            onClick: () => { identMode = 'r2_p269'; identP = 2; renderAll(); },
+          }, 'R₂ 教材例: x³+x²+x vs x'),
+        ]),
       ]));
       const leftBody = htmlEl('div', { className: 'panel-body' });
       const box1 = htmlEl('div', { className: 'canvas-box' });
       const svg1 = createSvg(400, 260);
       box1.appendChild(svg1);
 
-      svg1.appendChild(el('text', { x: 200, y: 24, 'text-anchor': 'middle', fill: 'var(--text-primary)', 'font-size': 12.5, 'font-weight': 800 },
-        `在有限域 R_${identP} 上对比 f(x) = x^${identP} 与 g(x) = x`));
+      const curIdentP = identMode === 'r2_p269' ? 2 : identP;
+      const identTitle = identMode === 'r2_p269'
+        ? '在 R₂ = {0,1} 上对比 f(x) = x³+x²+x 与 g(x) = x（p.269 例题）'
+        : `在有限域 R_${curIdentP} 上对比 f(x) = x^${curIdentP} 与 g(x) = x`;
+      svg1.appendChild(el('text', { x: 200, y: 24, 'text-anchor': 'middle', fill: 'var(--text-primary)', 'font-size': 12.2, 'font-weight': 800 }, identTitle));
 
-      for (let a = 0; a < identP; a++) {
-        const y = 62 + (a * 165) / Math.max(1, identP - 1);
-        const fa = Math.pow(a, identP) % identP;
-        const ga = a % identP;
-        const yf = 62 + (fa * 165) / Math.max(1, identP - 1);
+      for (let a = 0; a < curIdentP; a++) {
+        const y = 62 + (a * 165) / Math.max(1, curIdentP - 1);
+        const fa = identMode === 'r2_p269' ? (a * a * a + a * a + a) % 2 : Math.pow(a, curIdentP) % curIdentP;
+        const ga = a % curIdentP;
+        const yf = 62 + (fa * 165) / Math.max(1, curIdentP - 1);
 
         // Input node on left
         svg1.appendChild(el('circle', { cx: 65, cy: y, r: 14, fill: 'var(--svg-node-fill)', stroke: 'var(--accent-blue)', 'stroke-width': 2 }));
@@ -277,13 +312,15 @@
       }
 
       svg1.appendChild(el('text', { x: 200, y: 248, 'text-anchor': 'middle', fill: 'var(--accent-rose)', 'font-size': 11.5, 'font-weight': 700 },
-        `代入所有元素取值全同（f ≡ g），但次数 ${identP} ≠ 1，形式不等（f ≠ g）！`));
+        `代入所有元素取值全同（f ≡ g），但次数 ${identMode === 'r2_p269' ? 3 : curIdentP} ≠ 1，形式不等（f ≠ g）！`));
 
       leftBody.appendChild(box1);
       leftBody.appendChild(htmlEl('div', {
         className: 'formula-banner warn',
         style: { marginTop: '8px' },
-        innerHTML: renderTex(`\\text{在 } R_{${identP}} \\text{ 上：} x^{${identP}} \\equiv x \\text{（函数恒等）}\\quad\\text{但}\\quad x^{${identP}} \\neq x \\text{（形式不相等）}`),
+        innerHTML: renderTex(identMode === 'r2_p269'
+          ? `\\text{在 } R_2 \\text{ 上：} x^3+x^2+x \\equiv x \\text{（函数恒等）}\\quad\\text{但}\\quad x^3+x^2+x \\neq x \\text{（形式不相等）}`
+          : `\\text{在 } R_{${curIdentP}} \\text{ 上：} x^{${curIdentP}} \\equiv x \\text{（函数恒等）}\\quad\\text{但}\\quad x^{${curIdentP}} \\neq x \\text{（形式不相等）}`),
       }));
       leftPanel.appendChild(leftBody);
       grid.appendChild(leftPanel);
@@ -299,7 +336,8 @@
         ['real_double', 'ℝ 上 2 重根 (x-1)²(x+1.5)'],
         ['real_triple', 'ℝ 上 3 重根 (x-1)³'],
         ['real_simple', 'ℝ 上无重根 (x-1)(x+1)(x-2)'],
-        ['char_p', '⚠ 特征 p=2 奇异例：x²+1=(x+1)²'],
+        ['char_p', '⚠ 特征 p=2：x²+1=(x+1)²'],
+        ['char_p3', '⚠ 特征 p=3：x⁴+2x³+x-1'],
       ].map(([k, lbl]) => htmlEl('button', {
         className: `btn btn-sm ${derivMode === k ? 'active' : ''}`,
         onClick: () => { derivMode = k; renderAll(); },
@@ -308,12 +346,20 @@
 
       if (derivMode === 'char_p') {
         const boxChar = htmlEl('div', { className: 'formula-banner warn', style: { marginBottom: '10px' } }, [
-          htmlEl('strong', {}, '定理 6.7.11 精确讨论（p.273–274）特征 p 奇异现象！'),
+          htmlEl('strong', {}, '定理 6.7.11（p.276 & p.248–251）：特征 2 奇异退化与 4 元矩阵域'),
           htmlEl('div', { innerHTML: renderTex(`f(x) = x^2 + 1 = (x + 1)^2 \\in R_2[x]\\text{，重数 } k = 2 \\text{ 恰为特征 } p=2 \\text{ 的倍数}`) }),
-          htmlEl('div', { innerHTML: renderTex(`\\implies f'(x) = 2x \\equiv 0 \\in R_2[x]`) }),
-          htmlEl('span', {}, 'α = 1 是 f(x) 的 2 重根，但在特征 2 下由于 2 = 0，它竟成了微商 f\'(x) = 0 的 ∞ 重根（至少是 k 重根而非 k-1 重根）！不过定理 6.7.12“重根 ⟺ f 与 f\' 的公共根”依然完美成立！'),
+          htmlEl('div', { innerHTML: renderTex(`\\implies f'(x) = 2x \\equiv 0 \\in R_2[x]\\text{（重数升为 } \\infty > k-1\\text{）}`) }),
+          htmlEl('span', {}, '注（p.248–251）：R₂ 上 4 个二阶矩阵 {0, 1, a, b}（其中 a+b=1, a²=b, b²=a, ab=1）也构成特征 2 的 4 元域，同样满足 x²+1=(x+1)²！'),
         ]);
         rightBody.appendChild(boxChar);
+      } else if (derivMode === 'char_p3') {
+        const boxChar3 = htmlEl('div', { className: 'formula-banner warn', style: { marginBottom: '10px' } }, [
+          htmlEl('strong', {}, '定理 6.7.11 精确讨论（p.275）特征 p=3 重数不降反例！'),
+          htmlEl('div', { innerHTML: renderTex(`f(x) = x^4 + 2x^3 + x - 1 = (x - 2)^3(x - 1) \\in R_3[x]`) }),
+          htmlEl('div', { innerHTML: renderTex(`\\implies f'(x) = 4x^3 + 6x^2 + 1 \\equiv x^3 + 1 = (x - 2)^3 \\in R_3[x]`) }),
+          htmlEl('span', {}, '2 是 f(x) 的 3 重根（k=3 为特征 3 的倍数），但在微商 f\'(x) 中仍是 3 重根（高于 k-1=2）；而单根 1 在 f\'(x) 中降为 0 重根。'),
+        ]);
+        rightBody.appendChild(boxChar3);
       } else {
         const box2 = htmlEl('div', { className: 'canvas-box' });
         const svg2 = createSvg(400, 230);
@@ -372,6 +418,12 @@
           cDesc: '3 个不同一次质式：(x - ∛2)(x - ω∛2)(x - ω²∛2)',
           rDesc: '1 个一次式 + 1 个判别式<0二次质式：(x - ∛2)(x² + ∛2x + ∛4)',
         },
+        x2_2: {
+          name: 'x² - 2 (√2 无理数)',
+          coeffs: [1, 0, -2],
+          cDesc: '(x - √2)(x + √2)',
+          rDesc: '(x - √2)(x + √2)',
+        },
         x4_1: {
           name: 'x⁴ - 1',
           coeffs: [1, 0, 0, 0, -1],
@@ -389,6 +441,12 @@
           coeffs: [1, 0, 1, 1],
           cDesc: '3 个复一次质式',
           rDesc: '1 个实一次式 × 1 个实二次质式',
+        },
+        x5_x2_1: {
+          name: '3x⁵+7x²+5 (mod 2 化为 x⁵+x²+1 · 降半次法)',
+          coeffs: [3, 0, 0, 7, 0, 5],
+          cDesc: '5 个复一次质式',
+          rDesc: '1 个实一次式 × 2 个实二次质式',
         },
         prod6: {
           name: '(x²+7)(x⁴+5) = x⁶+7x⁴+5x²+35（无有理根却可约！）',
@@ -480,8 +538,8 @@
             }),
             htmlEl('span', { style: { fontWeight: 700, color: modIrred ? 'var(--accent-green)' : 'var(--accent-amber)' } },
               modIrred
-                ? `★ 红框重点（p.294）：在 R_${modTestP} 上不可约 ⇒ 在有理域 R₀ 上必然不可约！`
-                : `在 R_${modTestP} 上可约（若本身在 R₀ 不可约如 x⁴-1? 不，x⁴-1 可约；注意 x⁴+1 在任意素域皆可约但在 R₀ 不可约！）`),
+                ? `★ 红框重点（p.294）：在 R_${modTestP} 上不可约（降半次检验：无 ≤⌊n/2⌋ 次质因式）⇒ 在有理域 R₀ 上必然不可约！`
+                : `在 R_${modTestP} 上可约（注：R₂ 上 4 个二次式中仅有 x²+x+1 是质式；且 R₀ 不可约式模 p 后仍可能可约）`),
           ]),
         ]),
       ]);
@@ -509,7 +567,7 @@
         ]),
         htmlEl('div', { className: 'ctrl-group' }, [
           htmlEl('label', {}, '投射域：'),
-          ...[0, 2, 3, 5].map((p) => htmlEl('button', {
+          ...[0, 2, 3, 5, 7].map((p) => htmlEl('button', {
             className: `btn btn-sm ${cycProjP === p ? 'active' : ''}`,
             onClick: () => { cycProjP = p; renderAll(); },
           }, p === 0 ? '复数/整数域 R₀' : `任意域 R_${p} (mod ${p})`)),
@@ -620,17 +678,17 @@
         let extra = '';
         if (cycProjP > 0) {
           const modC = M.polyNormFp(phiCoeffs, cycProjP);
-          if (cycN % cycProjP === 0) {
-            // Note when p | n!
-            const fac = M.polyFactorFp(modC, cycProjP);
-            extra = ` &nbsp;⇒&nbsp; R_${cycProjP}: ${renderTex(fac.factors.map((f) => {
-              const pt = M.polyToLatex(f.poly, 'x', false);
-              return f.mult > 1 ? `(${pt})^{${f.mult}}` : `(${pt})`;
-            }).join(''))}`;
-          } else {
-            const fac = M.polyFactorFp(modC, cycProjP);
-            extra = ` &nbsp;⇒&nbsp; R_${cycProjP}: ${renderTex(fac.factors.map((f) => `(${M.polyToLatex(f.poly, 'x', false)})`).join(''))}`;
-          }
+          const fac = M.polyFactorFp(modC, cycProjP);
+          const hasRoot = d % cycProjP !== 0 && fac.factors.some((f) => M.polyDeg(f.poly) === 1);
+          const rootTag = d % cycProjP === 0
+            ? ' [重根退化]'
+            : hasRoot
+              ? ` <span class="chip ok" style="padding:0 5px;font-size:10.5px;">含全部 ${d} 次单位根</span>`
+              : ` <span class="chip warn" style="padding:0 5px;font-size:10.5px;">R_${cycProjP} 中无根</span>`;
+          extra = ` &nbsp;⇒&nbsp; R_${cycProjP}: ${renderTex(fac.factors.map((f) => {
+            const pt = M.polyToLatex(f.poly, 'x', false);
+            return f.mult > 1 ? `(${pt})^{${f.mult}}` : `(${pt})`;
+          }).join(''))}${rootTag}`;
         }
         listWrap.appendChild(htmlEl('div', {
           style: {

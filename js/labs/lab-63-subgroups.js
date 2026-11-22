@@ -37,6 +37,10 @@
         tab = 'cyclic';
         cycN = 12;
         cycK = 5;
+      } else if (p === 'cyclic-u4') {
+        tab = 'cyclic';
+        cycN = 4;
+        cycK = 1;
       } else if (p === 'coset-normal-s3') {
         tab = 'coset';
         grpKey = 'S3';
@@ -45,6 +49,25 @@
         subIdx = subs.findIndex((s) => !s.isNormal);
         if (subIdx < 0) subIdx = 1;
         showLeftCosets = true;
+        cauchyPrime = null;
+      } else if (p === 'coset-z12') {
+        tab = 'coset';
+        grpKey = 'Z12';
+        const G = makeGroup('Z12');
+        const subs = M.enumerateSubgroups(G).subgroups;
+        subIdx = subs.findIndex((s) => s.order === 3);
+        if (subIdx < 0) subIdx = 1;
+        showLeftCosets = true;
+        cauchyPrime = null;
+      } else if (p === 'coset-cauchy') {
+        tab = 'coset';
+        grpKey = 'S3';
+        const G = makeGroup('S3');
+        const subs = M.enumerateSubgroups(G).subgroups;
+        subIdx = subs.findIndex((s) => s.order === 3 && s.isNormal);
+        if (subIdx < 0) subIdx = 1;
+        showLeftCosets = true;
+        cauchyPrime = 3;
       } else if (p === 'coset-partition') {
         tab = 'coset';
         grpKey = 'D4';
@@ -53,6 +76,7 @@
         subIdx = subs.findIndex((s) => s.order === 4 && s.isNormal);
         if (subIdx < 0) subIdx = 1;
         showLeftCosets = true;
+        cauchyPrime = null;
       } else if (p === 'subgroup-check') {
         tab = 'subset';
         grpKey = 'Z12';

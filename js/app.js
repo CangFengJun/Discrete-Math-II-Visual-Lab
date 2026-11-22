@@ -1,4 +1,4 @@
-/* Main Application Controller: Routing, Theme, Global Search, 222-Card Dual-Link Drawer & Terms Modal */
+/* Main Application Controller: Routing, Theme, Global Search, 267-Card Dual-Link Drawer & Terms Modal */
 (function (root) {
   'use strict';
 
@@ -12,6 +12,8 @@
     { key: 'def', label: '定义/概念' },
     { key: 'thm', label: '定理/引理' },
     { key: 'prop', label: '性质/结论' },
+    { key: 'example', label: '例题结论' },
+    { key: 'supplement', label: '补充结论' },
     { key: 'handwriting', label: '手写补充' },
     { key: 'pitfall', label: '易错结论' },
     { key: 'note', label: '注意/说明' },
@@ -40,7 +42,9 @@
     const metaSub = document.getElementById('meta-subtitle');
 
     if (metaSub && knowledge.meta.totalCards) {
-      metaSub.textContent = `6.1–6.8 全章 · ${knowledge.meta.totalCards} 张卡片 · ${knowledge.meta.totalHandwriting} 手写 · ${knowledge.meta.totalPitfall} 易错`;
+      const exPart = knowledge.meta.totalExample ? ` · ${knowledge.meta.totalExample} 例题` : '';
+      const supPart = knowledge.meta.totalSupplement ? ` · ${knowledge.meta.totalSupplement} 补充` : '';
+      metaSub.textContent = `6.1–6.8 全章 · ${knowledge.meta.totalCards} 卡${exPart}${supPart} · ${knowledge.meta.totalHandwriting} 手写 · ${knowledge.meta.totalPitfall} 易错`;
     }
 
     let currentLabId = 'overview';
@@ -143,7 +147,7 @@
         const ch = chapterMap.get(labId);
         if (!lab) return;
 
-        const countText = ch ? `${ch.cardCount}卡` : `${knowledge.meta.totalCards || 222}全`;
+        const countText = ch ? `${ch.cardCount}卡` : `${knowledge.meta.totalCards || 267}全`;
         const item = htmlEl('button', {
           className: `nav-item ${currentLabId === labId ? 'active' : ''}`,
           onClick: () => navigate(labId, null),
@@ -163,6 +167,8 @@
     // -------------------------------------------------------------------------
     function matchesFilter(card) {
       if (activeFilter === 'all') return true;
+      if (activeFilter === 'example') return !!card.isExample || (card.badge && card.badge.includes('例题'));
+      if (activeFilter === 'supplement') return !!card.isSupplement || (card.badge && card.badge.includes('补充'));
       if (activeFilter === 'handwriting') return card.handwritingCount > 0 || card.kind === 'handwriting';
       if (activeFilter === 'pitfall') return card.pitfallCount > 0 || card.kind === 'pitfall';
       if (activeFilter === 'note') return card.noteCount > 0 || card.kind === 'note';
@@ -245,12 +251,18 @@
           }));
         }
 
+        const badgeVariant = (card.isExample || (card.badge && card.badge.includes('例题')))
+          ? ' kbadge-example'
+          : (card.isSupplement || (card.badge && card.badge.includes('补充')))
+            ? ' kbadge-supplement'
+            : '';
+
         const cardEl = htmlEl('article', {
           id: `drawer-${card.id}`,
           className: `kcard kcard-${card.kind} ${highlightedCardId === card.id ? 'highlighted' : ''}`,
         }, [
           htmlEl('header', { className: 'kcard-head' }, [
-            htmlEl('span', { className: `kbadge kbadge-${card.kind}` }, card.badge),
+            htmlEl('span', { className: `kbadge kbadge-${card.kind}${badgeVariant}` }, card.badge),
             htmlEl('span', { className: 'kcard-title', innerHTML: card.titleHtml }),
             card.pageRef ? htmlEl('span', { className: 'page-pill' }, card.pageRef) : null,
           ]),
